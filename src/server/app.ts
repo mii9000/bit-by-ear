@@ -2,7 +2,7 @@ import express, { Router } from 'express';
 import { resolve } from 'node:path';
 import { config } from './config.js';
 import { pool } from './db.js';
-import { requireUser, originAndCsrf, signIn, signOut, signUp, session } from './auth.js';
+import { requireUser, originAndCsrf, requireSameOrigin, signIn, signOut, signUp, session } from './auth.js';
 import { knowledgeRouter } from './knowledge.js';
 import { courseRouter } from './courses.js';
 import { episodeRouter } from './episodes.js';
@@ -27,10 +27,10 @@ export function createApp() {
   const authRouter = Router();
   authRouter.post('/signup', signUp);
   authRouter.post('/login', signIn);
+  authRouter.post('/logout', requireSameOrigin, signOut);
   app.use('/api/auth', authRouter);
 
   app.get('/api/session', requireUser, session);
-  app.post('/api/auth/logout', requireUser, originAndCsrf, signOut);
   app.get('/api/health', async (_request, response) => {
     try {
       await pool.query('SELECT 1');

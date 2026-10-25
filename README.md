@@ -1,6 +1,8 @@
 # Bit by Ear
 
-Bit by Ear turns your own notes and documents into a short, daily audio learning series. Add a topic and context, review the proposed learning plan, then listen to story-like episodes from a private, installable web app. Episodes are published only when measured audio duration is at most two minutes. Push notifications are optional.
+**Small listens. Steady learning.**
+
+Explore something you’ve been meaning to learn, one idea at a time. Bit by Ear turns your own notes and documents into connected daily audio stories. Add a topic and context, adjust and approve your learning plan, then listen at your own pace in a private, installable web app. Each episode briefly recalls the previous idea and introduces a new one. Published audio is measured to be two minutes or less; episode-ready notifications are optional.
 
 ## Run locally
 

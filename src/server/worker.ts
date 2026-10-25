@@ -72,7 +72,7 @@ async function planJob(job: ClaimedJob): Promise<void> {
   const resources = await getResources(course.id);
   const result = await generatePlan({ learner: learner(course), resources, requestedCount });
   const valid = planDraftSchema.safeParse(result.draft);
-  if (!valid.success) throw new Error('The course plan did not match its expected format. Try generating it again.');
+  if (!valid.success) throw new Error('The learning plan did not match its expected format. Try generating it again.');
   await withTransaction(async (client) => {
     const updated = await client.query(
       `UPDATE courses SET plan=$2::jsonb,source_revision=$3,plan_revision=plan_revision+1,updated_at=now()
@@ -282,7 +282,7 @@ async function deliverPush(job: ClaimedJob): Promise<void> {
   const url = new URL(row.endpoint);
   if (url.protocol !== 'https:' || !pushHosts.has(url.hostname)) throw new Error('This browser uses an unsupported push service. You can still listen in the app.');
   try {
-    await webpush.sendNotification(row.subscription, JSON.stringify({ title: 'A new lesson is ready', body: 'Your next audio story is waiting.', url: `/episodes/${row.episode_id}` }), { TTL: 3600, urgency: 'normal' });
+    await webpush.sendNotification(row.subscription, JSON.stringify({ title: 'Your next small step is ready', body: 'A new audio episode is waiting. Listen whenever you’re ready.', url: `/episodes/${row.episode_id}` }), { TTL: 3600, urgency: 'normal' });
     await pool.query('UPDATE push_deliveries SET delivered_at=now(),attempts=attempts+1 WHERE id=$1', [row.id]);
   } catch (error) {
     const code = (error as { statusCode?: number }).statusCode;

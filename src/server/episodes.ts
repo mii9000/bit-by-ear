@@ -15,7 +15,7 @@ episodeRouter.get('/courses/:id/episodes', async (request, response) => {
   );
   const hasCourse = await pool.query('SELECT id FROM knowledge_bases WHERE id=$1 AND owner_id=$2', [request.params.id, request.user!.id]);
   if (!hasCourse.rowCount) {
-    response.status(404).json({ error: 'Learning course not found.' });
+    response.status(404).json({ error: 'Learning series not found.' });
     return;
   }
   response.json({ episodes: owned.rows });
@@ -25,7 +25,7 @@ episodeRouter.get('/episodes/:id', async (request, response) => {
   const result = await pool.query(
     `SELECT e.id,e.lesson_index AS index,e.title,e.state,e.script,e.source_refs AS "sourceRefs",
             e.duration_seconds AS "durationSeconds",e.progress_seconds AS "progressSeconds",e.finished,
-            c.id AS "courseId",k.title AS "courseTitle"
+            c.id AS "courseId",k.id AS "knowledgeBaseId",k.title AS "courseTitle"
      FROM episodes e JOIN courses c ON c.id=e.course_id JOIN knowledge_bases k ON k.id=c.knowledge_base_id
      WHERE e.id=$1 AND k.owner_id=$2 AND e.state='ready'`,
     [request.params.id, request.user!.id],

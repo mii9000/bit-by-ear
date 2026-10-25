@@ -59,12 +59,21 @@ export function originAndCsrf(request: Request, response: Response, next: NextFu
   if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) return next();
   const origin = request.headers.origin;
   const bodyToken = typeof request.body?.csrfToken === 'string' ? request.body.csrfToken : undefined;
-  const originMatches = origin === config.appOrigin || (!config.isProduction && isLocalOriginAlias(origin, config.appOrigin));
+  const originMatches = hasMatchingOrigin(origin);
   if (!originMatches || !request.user || (request.headers['x-csrf-token'] !== request.csrfToken && bodyToken !== request.csrfToken)) {
     response.status(403).json({ error: 'Your session expired. Refresh the page and try again.' });
     return;
   }
   next();
+}
+
+export function requireSameOrigin(request: Request, response: Response, next: NextFunction): void {
+  if (hasMatchingOrigin(request.headers.origin)) return next();
+  response.status(403).json({ error: 'This request did not come from this app.' });
+}
+
+function hasMatchingOrigin(origin: string | undefined): boolean {
+  return origin === config.appOrigin || (!config.isProduction && isLocalOriginAlias(origin, config.appOrigin));
 }
 
 function isLocalOriginAlias(origin: string | undefined, expectedOrigin: string): boolean {

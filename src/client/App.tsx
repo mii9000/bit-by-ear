@@ -37,22 +37,25 @@ export function App() {
   if (!signedIn) return <AccountScreen onSignedIn={() => void queryClient.invalidateQueries({ queryKey: ['session'] })} />;
 
   return <div className="app-frame">
-    <header className="topbar"><Link to="/" className="wordmark"><span className="brand-mark"><Headphones size={19} /></span><span>bit by ear<small>A little wiser, two minutes a day</small></span></Link>
-      <nav className="topnav" aria-label="Account"><Link to="/" className={location.pathname === '/' ? 'nav-link current' : 'nav-link'}>Your library</Link><span className="nav-email">{session.data!.user.email}</span><button className="icon-button" aria-label="Sign out" title="Sign out" onClick={async () => {
+    <a className="skip-link" href="#main-content">Skip to content</a>
+    <header className="topbar"><Link to="/" className="wordmark"><span className="brand-mark"><Headphones size={19} /></span><span>bit by ear<small>Small listens. Steady learning.</small></span></Link>
+      <nav className="topnav" aria-label="Account"><Link to="/" className={location.pathname === '/' ? 'nav-link current' : 'nav-link'} aria-current={location.pathname === '/' ? 'page' : undefined}>Your library</Link><span className="nav-email">{session.data!.user.email}</span><button className="icon-button" aria-label="Sign out" title="Sign out" onClick={async () => {
         try { await removePush(); } catch { /* Logging out remains available when notifications are disabled. */ }
         try { await api('/api/auth/logout', { method: 'POST' }); } catch { /* Clear local session state even when the server cannot be reached. */ } finally {
           setCsrfToken(null);
-          await queryClient.clear();
+          queryClient.setQueryData(['session'], null);
+          await queryClient.cancelQueries();
+          queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'session' });
         }
       }}><LogOut size={17} /></button></nav>
     </header>
-    <Routes>
+    <div id="main-content" className="route-content" tabIndex={-1}><Routes>
       <Route path="/" element={<LibraryPage />} />
       <Route path="/knowledge/:id" element={<CoursePage />} />
       <Route path="/episodes/:id" element={<PlayerPage />} />
       <Route path="/settings/:id" element={<SettingsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-    <footer className="site-footer"><span>Bit by Ear</span><span>Good things grow one little bit at a time.</span><span>Built with care for curious minds.</span></footer>
+    </Routes></div>
+    <footer className="site-footer"><span>Bit by Ear</span><span>Understanding grows, one idea at a time.</span></footer>
   </div>;
 }

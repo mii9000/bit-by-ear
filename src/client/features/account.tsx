@@ -11,13 +11,14 @@ export function AccountScreen({ onSignedIn }: { onSignedIn: () => void }) {
   const [createAccount, setCreateAccount] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<AccountForm>();
+  const { register, handleSubmit, setError: setFieldError, clearErrors, formState: { errors } } = useForm<AccountForm>();
 
   const submit = handleSubmit(async (values) => {
     setError('');
+    clearErrors();
     const parsed = accountSchema.safeParse(values);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message || 'Check your details.');
+      for (const [index, issue] of parsed.error.issues.entries()) setFieldError(issue.path[0] as keyof AccountForm, { message: issue.message }, { shouldFocus: index === 0 });
       return;
     }
     setBusy(true);
@@ -38,22 +39,23 @@ export function AccountScreen({ onSignedIn }: { onSignedIn: () => void }) {
 
   return <main className="auth-wrap">
     <section className="auth-card" aria-labelledby="welcome-title">
-      <span className="brand-mark large"><Headphones size={28} strokeWidth={1.8} /></span>
-      <p className="eyebrow">A little wiser, two minutes a day</p>
-      <h1 id="welcome-title">Learning that fits into life.</h1>
-      <p className="intro-copy">Bring the material you care about. We’ll turn it into short audio stories you can listen to, one a day.</p>
+      <div className="auth-brand"><span className="brand-mark large"><Headphones size={28} strokeWidth={1.8} /></span><div><span className="wordmark">bit by ear</span><p className="brand-tagline">Small listens. Steady learning.</p></div></div>
+      <h1 id="welcome-title">Something you’ve been meaning to learn.</h1>
+      <p className="intro-copy">Turn your own material into connected daily audio stories. One new idea at a time, in two minutes or less.</p>
       <form className="stack-form" onSubmit={(event) => { void submit(event); }} noValidate>
-        <label>Email address<input type="email" autoComplete="email" placeholder="you@example.com" {...register('email')} /></label>
-        {errors.email && <span className="field-error">{errors.email.message}</span>}
-        <label>Password<input type="password" autoComplete={createAccount ? 'new-password' : 'current-password'} placeholder={createAccount ? 'At least 10 characters' : 'Your password'} {...register('password')} /></label>
-        {errors.password && <span className="field-error">{errors.password.message}</span>}
+        <label>Email address<input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required maxLength={254} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-error' : undefined} placeholder="you@example.com" {...register('email')} />
+          {errors.email && <span id="email-error" className="field-error">{errors.email.message}</span>}
+        </label>
+        <label>Password<input type="password" autoComplete={createAccount ? 'new-password' : 'current-password'} required maxLength={200} aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'password-error' : createAccount ? 'password-hint' : undefined} placeholder={createAccount ? 'Choose a password' : 'Your password'} {...register('password')} />
+          {errors.password ? <span id="password-error" className="field-error">{errors.password.message}</span> : createAccount && <small id="password-hint" className="subtle">Use at least 10 characters.</small>}
+        </label>
         {error && <p className="notice error" role="alert">{error}</p>}
-        <button className="button primary full" type="submit" disabled={busy}>{busy ? 'One moment…' : createAccount ? 'Create your account' : 'Sign in'}</button>
+        <button className="button primary full" type="submit" disabled={busy}>{busy ? (createAccount ? 'Creating account…' : 'Signing in…') : createAccount ? 'Create your account' : 'Sign in'}</button>
       </form>
-      <button className="text-button account-toggle" type="button" onClick={() => { setError(''); setCreateAccount((value) => !value); }}>
+      <button className="text-button account-toggle" type="button" onClick={() => { setError(''); clearErrors(); setCreateAccount((value) => !value); }}>
         {createAccount ? 'Already have an account? Sign in' : 'New to Bit by Ear? Create an account'}
       </button>
-      <p className="subtle auth-foot"><Sparkles size={14} /> Made for curiosity, at your own pace.</p>
+      <p className="subtle auth-foot"><Sparkles size={14} /> A little listening, at your own pace.</p>
     </section>
   </main>;
 }

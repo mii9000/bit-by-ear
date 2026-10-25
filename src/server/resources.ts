@@ -46,7 +46,7 @@ export async function queueResource(client: PoolClient, input: { knowledgeBaseId
   );
   if (!kb.rowCount) throw Object.assign(new Error('Knowledge base not found.'), { status: 404 });
   const course = await client.query('SELECT state FROM courses WHERE knowledge_base_id = $1 FOR UPDATE', [input.knowledgeBaseId]);
-  if (course.rows[0]?.state !== 'draft') throw Object.assign(new Error('Resources are locked after course approval.'), { status: 409 });
+  if (course.rows[0]?.state !== 'draft') throw Object.assign(new Error('Resources are locked after learning plan approval.'), { status: 409 });
   const total = await client.query<{ count: string; bytes: string }>(
     'SELECT count(*)::text, COALESCE(sum(byte_count), 0)::text FROM resources WHERE knowledge_base_id = $1',
     [input.knowledgeBaseId],

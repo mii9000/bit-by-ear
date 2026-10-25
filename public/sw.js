@@ -31,8 +31,8 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'A new lesson is ready', body: 'Your next audio story is waiting.', url: '/' };
-  try { data = { ...data, ...event.data.json() }; } catch { /* Use the generic lesson notification. */ }
+  let data = { title: 'Your next small step is ready', body: 'A new audio episode is waiting. Listen whenever you’re ready.', url: '/' };
+  try { data = { ...data, ...event.data.json() }; } catch { /* Use the generic episode notification. */ }
   event.waitUntil(self.registration.showNotification(data.title, {
     body: data.body,
     icon: '/icons/icon.svg',

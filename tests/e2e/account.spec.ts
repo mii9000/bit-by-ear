@@ -8,7 +8,7 @@ test('a learner can create a knowledge base, generate a plan, and approve it', a
   await page.getByLabel('Email address').fill(email);
   await page.getByLabel('Password').fill('learning-is-fun-123');
   await page.getByRole('button', { name: 'Create your account' }).click();
-  await expect(page.getByRole('heading', { name: /a little learning/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /small listens.*steady learning/i })).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
 
   await page.getByLabel('Give it a name').fill('Session debug test');
@@ -45,4 +45,9 @@ test('a learner can create a knowledge base, generate a plan, and approve it', a
   await page.getByRole('button', { name: 'Approve this plan' }).click();
   await expect(page.getByRole('heading', { name: 'Your episodes' })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole('link', { name: /Listen to/ })).toBeVisible({ timeout: 20_000 });
+  await page.getByRole('link', { name: /Listen to/ }).click();
+  await expect(page.getByRole('button', { name: 'Play episode' })).toBeVisible();
+  await page.getByRole('link', { name: 'Back to Session debug test' }).click();
+  await expect(page).toHaveURL(new RegExp(`/knowledge/${knowledgeBaseId}$`));
+  await expect(page.getByRole('heading', { name: 'Your episodes' })).toBeVisible();
 });

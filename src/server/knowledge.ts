@@ -65,7 +65,7 @@ knowledgeRouter.patch('/:id', async (request, response) => {
     const kb = await client.query('SELECT id FROM knowledge_bases WHERE id = $1 AND owner_id = $2 FOR UPDATE', [request.params.id, request.user!.id]);
     if (!kb.rowCount) return null;
     const course = await client.query('SELECT state FROM courses WHERE knowledge_base_id = $1 FOR UPDATE', [request.params.id]);
-    if (course.rows[0]?.state !== 'draft') throw Object.assign(new Error('Learning details are locked after course approval.'), { status: 409 });
+    if (course.rows[0]?.state !== 'draft') throw Object.assign(new Error('Learning details are locked after learning plan approval.'), { status: 409 });
     const update = await client.query(
       `UPDATE knowledge_bases SET title=$3, topic=$4, goal=$5, current_knowledge=$6, revision=revision+1, updated_at=now()
        WHERE id=$1 AND owner_id=$2 RETURNING id, title, topic, goal, current_knowledge AS "currentKnowledge", revision`,
@@ -139,7 +139,7 @@ knowledgeRouter.delete('/resources/:resourceId', async (request, response) => {
     return Boolean(result.rowCount);
   });
   if (!removed) {
-    response.status(404).json({ error: 'Resource not found or it belongs to an approved course.' });
+    response.status(404).json({ error: 'Resource not found or it belongs to an approved learning plan.' });
     return;
   }
   response.status(204).end();

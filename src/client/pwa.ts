@@ -4,12 +4,13 @@ export function isInstalled(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 }
 
-export async function enablePush(): Promise<void> {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) throw new Error('This browser does not support app notifications. Your lessons will still appear in the library.');
+export type PushSettings = { enabled: boolean; publicKey: string | null };
+
+export async function enablePush(settings: PushSettings): Promise<void> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) throw new Error('This browser does not support app notifications. Your episodes will still appear in the library.');
+  if (!settings.enabled || !settings.publicKey) throw new Error('Notifications are not configured for this app yet. Your episodes will still appear here.');
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') throw new Error('Notifications are off. You can enable them in your device settings later.');
-  const settings = await api<{ enabled: boolean; publicKey: string | null }>('/api/push/public-key');
-  if (!settings.enabled || !settings.publicKey) throw new Error('Notifications are not configured for this app yet. Your lessons will still appear here.');
   const registration = await navigator.serviceWorker.ready;
   const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToBytes(settings.publicKey) });
   await post('/api/push/subscriptions', subscription.toJSON());

@@ -7,7 +7,7 @@ import { api, post } from '../api.js';
 
 type EpisodeDetails = {
   id: string; index: number; title: string; state: 'ready'; script: string; sourceRefs: { resourceId: string; page: number | null; excerpt: string }[];
-  durationSeconds: number; progressSeconds: number; finished: boolean; courseId: string; courseTitle: string;
+  durationSeconds: number; progressSeconds: number; finished: boolean; knowledgeBaseId: string; courseTitle: string;
 };
 
 export function PlayerPage() {
@@ -41,7 +41,6 @@ export function PlayerPage() {
   if (query.error || !episode) return <main className="page-shell"><p className="notice error">{query.error?.message || 'This episode could not be found.'}</p><Link className="text-button" to="/">Back to your library</Link></main>;
 
   const currentDuration = duration || episode.durationSeconds;
-  const percentage = currentDuration ? Math.min(position / currentDuration, 1) : 0;
   async function togglePlayback() {
     const element = audio.current;
     if (!element) return;
@@ -61,12 +60,12 @@ export function PlayerPage() {
   }
 
   return <main className="listening-shell">
-    <Link className="back-link player-back" to={`/knowledge/${episode.courseId}`}><ArrowLeft size={16} /> Back to {episode.courseTitle}</Link>
+    <Link className="back-link player-back" to={`/knowledge/${episode.knowledgeBaseId}`}><ArrowLeft size={16} /> Back to {episode.courseTitle}</Link>
     <article className="player-card">
       <div className="listen-art" aria-hidden="true"><span className="listen-orbit orbit-a" /><span className="listen-orbit orbit-b" /><span className="listen-center"><Headphones size={35} strokeWidth={1.5} /></span><span className="listen-speck speck-a" /><span className="listen-speck speck-b" /></div>
-      <p className="eyebrow">EPISODE {String(episode.index).padStart(2, '0')} <span className="eyebrow-dot">·</span> {episode.courseTitle}</p>
+      <p className="episode-meta">Episode {String(episode.index).padStart(2, '0')} <span className="meta-dot">·</span> {episode.courseTitle}</p>
       <h1>{episode.title}</h1>
-      <p className="player-subtitle">A short story about one new idea.</p>
+      <p className="player-subtitle">One idea to explore, one small step forward.</p>
       <audio ref={audio} preload="metadata" src={`/api/episodes/${episode.id}/audio`} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onTimeUpdate={(event) => {
         const at = event.currentTarget.currentTime;
         setPosition(at);
@@ -75,6 +74,7 @@ export function PlayerPage() {
       <Slider
         className="audio-slider"
         aria-label="Audio progress"
+        formatOptions={{ style: 'unit', unit: 'second', unitDisplay: 'long' }}
         minValue={0}
         maxValue={Math.max(currentDuration, 1)}
         step={1}
@@ -84,12 +84,12 @@ export function PlayerPage() {
           setPosition(next);
           if (audio.current) audio.current.currentTime = next;
         }}
-    onChangeEnd={(value) => {
+        onChangeEnd={(value) => {
           const next = Array.isArray(value) ? value[0]! : value;
           savePosition(next);
         }}
       >
-        <SliderTrack className="audio-track"><SliderFill className="audio-fill" /><SliderThumb className="audio-thumb" /></SliderTrack>
+        <SliderTrack className="audio-track"><SliderFill className="audio-fill" /><SliderThumb className="audio-thumb" aria-label="Playback position" /></SliderTrack>
       </Slider>
       <div className="time-row"><span>{formatTime(position)}</span><span>{formatTime(currentDuration)}</span></div>
       <button className={`play-button ${playing ? 'is-playing' : ''}`} aria-label={playing ? 'Pause episode' : 'Play episode'} onClick={() => void togglePlayback()}>
@@ -97,17 +97,15 @@ export function PlayerPage() {
         <span>{playing ? 'Pause' : 'Play episode'}</span>
       </button>
       {playError && <p className="notice error player-error" role="alert">{playError}</p>}
-      <p className="subtle listening-hint"><Volume2 size={15} /> Get comfortable. This one’s under two minutes.</p>
+      <p className="subtle listening-hint"><Volume2 size={15} /> Two minutes or less. Listen at your own pace.</p>
     </article>
     <section className="transcript-card">
-      <p className="eyebrow">Take a closer look</p>
       <details><summary>Read the story and see its sources</summary>
         <p className="transcript-copy">{episode.script}</p>
         {episode.sourceRefs.length > 0 && <div className="sources-box"><strong>From your learning material</strong>{episode.sourceRefs.map((ref, index) => <blockquote key={`${ref.resourceId}-${index}`}>“{ref.excerpt}”{ref.page ? ` · page ${ref.page}` : ''}</blockquote>)}</div>}
       </details>
     </section>
-    <p className="subtle player-footnote">Made slowly. Ready whenever you are.</p>
-    <span className="visually-hidden" aria-live="polite">{percentage > 0 ? `${Math.round(percentage * 100)} percent played` : ''}</span>
+    <p className="subtle player-footnote">Pick up where you left off, whenever you’re ready.</p>
   </main>;
 }
 

@@ -2,12 +2,12 @@
   "id": "/",
   "name": "Bit by Ear",
   "short_name": "Bit by Ear",
-  "description": "A little wiser, two minutes a day.",
+  "description": "Small listens. Steady learning.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f5f1e8",
-  "theme_color": "#f5f1e8",
+  "background_color": "#f6f4ed",
+  "theme_color": "#f6f4ed",
   "icons": [
     { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]

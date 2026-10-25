@@ -42,14 +42,14 @@ courseRouter.get('/:id', async (request, response) => {
 courseRouter.post('/:id/plan/generate', async (request, response) => {
   const input = z.object({ requestedCount: z.number().int().min(3).max(30).optional(), requestId: z.string().uuid().optional() }).safeParse(request.body || {});
   if (!input.success) {
-    response.status(400).json({ error: 'Choose a course length between 3 and 30 days.' });
+    response.status(400).json({ error: 'Choose a series length between 3 and 30 days.' });
     return;
   }
   const job = await withTransaction(async (client) => {
     const found = await ownedKnowledgeBase(client, kbId(request), ownerId(request), true);
     if (!found.rowCount) return { error: 'Knowledge base not found.', status: 404 };
     const kb = found.rows[0] as { id: string; revision: number; course_id: string; course_state: string };
-    if (kb.course_state !== 'draft') return { error: 'This course is already approved.', status: 409 };
+    if (kb.course_state !== 'draft') return { error: 'This learning plan is already approved.', status: 409 };
     const ready = await client.query("SELECT count(*)::int AS count FROM resources WHERE knowledge_base_id=$1 AND status='ready'", [kb.id]);
     const pending = await client.query("SELECT count(*)::int AS count FROM resources WHERE knowledge_base_id=$1 AND status <> 'ready'", [kb.id]);
     if (!Number(ready.rows[0]?.count)) return { error: 'Add at least one ready resource first.', status: 400 };
@@ -64,14 +64,14 @@ courseRouter.post('/:id/plan/generate', async (request, response) => {
 courseRouter.patch('/:id/plan', async (request, response) => {
   const input = z.object({ revision: z.number().int().positive(), plan: planDraftSchema }).safeParse(request.body);
   if (!input.success) {
-    response.status(400).json({ error: 'Check the lesson titles, objectives, sources, and course length (3–30 lessons).' });
+    response.status(400).json({ error: 'Check the episode titles, objectives, sources, and series length (3–30 episodes).' });
     return;
   }
   const result = await withTransaction(async (client) => {
     const found = await ownedKnowledgeBase(client, kbId(request), ownerId(request), true);
     if (!found.rowCount) return { error: 'Knowledge base not found.', status: 404 };
     const row = found.rows[0] as { id: string; revision: number; course_id: string; course_state: string; plan_revision: number; source_revision: number };
-    if (row.course_state !== 'draft') return { error: 'The plan is locked once the course is approved.', status: 409 };
+    if (row.course_state !== 'draft') return { error: 'The learning plan is locked once approved.', status: 409 };
     if (row.source_revision !== row.revision) return { error: 'Your source materials changed. Generate a fresh plan before saving.', status: 409 };
     if (row.plan_revision !== input.data.revision) return { error: 'This plan changed. Refresh it before saving your edits.', status: 409 };
     const excerpts = await client.query('SELECT id, extracted_text, pages FROM resources WHERE knowledge_base_id=$1', [row.id]);
@@ -94,7 +94,7 @@ courseRouter.patch('/:id/plan', async (request, response) => {
 courseRouter.post('/:id/plan/approve', async (request, response) => {
   const input = z.object({ revision: z.number().int().positive(), timezone: z.string().min(1).max(80), deliveryTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/) }).safeParse(request.body);
   if (!input.success || !isSupportedTimeZone(input.data?.timezone || '')) {
-    response.status(400).json({ error: 'Choose a supported time zone, course revision, and delivery time.' });
+    response.status(400).json({ error: 'Check the time zone and daily episode time, then refresh the plan and try again.' });
     return;
   }
   const result = await withTransaction(async (client) => {
@@ -102,7 +102,7 @@ courseRouter.post('/:id/plan/approve', async (request, response) => {
     if (!found.rowCount) return { error: 'Knowledge base not found.', status: 404 };
     const row = found.rows[0] as { id: string; revision: number; course_id: string; course_state: string; plan_revision: number; source_revision: number; plan: unknown };
     if (row.course_state === 'validating') return { status: 202, jobId: null };
-    if (row.course_state !== 'draft') return { error: 'This course has already been approved.', status: 409 };
+    if (row.course_state !== 'draft') return { error: 'This learning plan has already been approved.', status: 409 };
     if (row.source_revision !== row.revision) return { error: 'Your source materials changed. Generate a fresh plan before approving.', status: 409 };
     if (row.plan_revision !== input.data.revision) return { error: 'This plan changed. Refresh and review the latest version before approving.', status: 409 };
     if (!row.plan) return { error: 'Generate a plan before approving it.', status: 409 };
@@ -128,7 +128,7 @@ courseRouter.patch('/:id/settings', async (request, response) => {
     );
     if (!row.rowCount) return { error: 'Knowledge base not found.', status: 404 };
     const course = row.rows[0] as { id: string; state: string; timezone: string | null; delivery_time: string | null; next_due_at: Date | null; last_published_at: Date | null; plan: { lessons: unknown[] } };
-    if (!['active', 'paused'].includes(course.state)) return { error: 'Approve the learning plan before changing course settings.', status: 409 };
+    if (!['active', 'paused'].includes(course.state)) return { error: 'Approve the learning plan before changing listening settings.', status: 409 };
     const timezone = input.data.timezone || course.timezone || 'UTC';
     const deliveryTime = input.data.deliveryTime || course.delivery_time || '08:00';
     const pausing = input.data.paused === true;
