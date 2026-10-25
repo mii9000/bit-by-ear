@@ -2,10 +2,10 @@ services:
   - type: web
     name: bit-by-ear
     runtime: node
-    plan: starter
-    buildCommand: npm ci && npm run build
-    preDeployCommand: npm run db:migrate
-    startCommand: npm start
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run db:migrate:production && npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
@@ -40,8 +40,9 @@ services:
   - type: worker
     name: bit-by-ear-worker
     runtime: node
-    plan: starter
-    buildCommand: npm ci && npm run build
+    plan: 0.5c-512mb
+    region: frankfurt
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start:worker
     envVars:
       - key: NODE_VERSION
@@ -78,6 +79,7 @@ services:
 
 databases:
   - name: bit-by-ear-db
-    plan: starter
+    plan: free
+    region: frankfurt
     databaseName: bitbyear
     user: bitbyear
