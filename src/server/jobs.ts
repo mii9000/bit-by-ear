@@ -43,7 +43,7 @@ export async function completeJob(job: ClaimedJob): Promise<void> {
 
 export async function failJob(job: ClaimedJob, error: unknown): Promise<void> {
   const message = (error instanceof Error ? error.message : 'Job failed.').slice(0, 500);
-  const transient = error instanceof Error && (error.name === 'AbortError' || /rate limit|temporar|timeout|unavailable|returned 5\d\d/i.test(message));
+  const transient = error instanceof Error && (error.name === 'AbortError' || /rate limit|temporar|timeout|unavailable|returned 5\d\d|truncated/i.test(message));
   const canRetry = transient && job.attempts < 3;
   const delaySeconds = job.attempts === 1 ? 60 : 300;
   await pool.query(
