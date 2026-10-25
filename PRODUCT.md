@@ -31,7 +31,7 @@ Learners create a knowledge base, add resources and learning context, review and
 - The listening controls are play/pause and a draggable seek bar. Playback position is saved.
 - Push notifications are optional and announce when an episode is ready.
 - The interface is a Progressive Web App built with React and TypeScript. The backend uses TypeScript.
-- OpenRouter with Gemma generates plans and episode scripts; ElevenLabs generates narration. Render hosts the application and scheduled generation services.
+- OpenRouter with GLM 5.3 Flash generates plans and episode scripts; ElevenLabs generates narration. Render hosts the application and scheduled generation services.
 - The product should automate recurring preparation while keeping plan approval in the learner's hands.
 
 ## Brand Commitments

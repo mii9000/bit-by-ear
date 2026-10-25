@@ -15,7 +15,7 @@ export const config = {
   sessionSecret: process.env.SESSION_SECRET || localSecret,
   providerMode: process.env.PROVIDER_MODE || 'mock',
   openRouterKey: process.env.OPENROUTER_API_KEY || '',
-  openRouterModel: process.env.OPENROUTER_MODEL || 'google/gemma-3-12b-it',
+  openRouterModel: process.env.OPENROUTER_MODEL || 'z-ai/glm-5.3-flash',
   elevenLabsKey: process.env.ELEVENLABS_API_KEY || '',
   elevenLabsVoice: process.env.ELEVENLABS_VOICE_ID || '',
   elevenLabsModel: process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2',

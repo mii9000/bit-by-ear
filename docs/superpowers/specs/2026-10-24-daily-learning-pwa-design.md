@@ -16,7 +16,7 @@ The product promise is: **Something you have been meaning to learn, explained a 
 
 - Users create knowledge bases and add their own resources and learning context.
 - Context includes the learning goal and current knowledge.
-- Gemma through OpenRouter generates a proposed learning plan. The system proposes duration; the user can adjust the plan and approve it.
+- The configured OpenRouter model generates a proposed learning plan. The system proposes duration; the user can adjust the plan and approve it.
 - Approval starts an automated daily audio series.
 - Each episode is an informative narrative: briefly recall what the previous episode shared, then develop a new concept through a connected explanation or illustrative story. Episode one establishes the starting point.
 - No questions, quizzes, exercises, or required responses in episodes.
@@ -76,7 +76,7 @@ An alternative is S3-compatible storage plus Postgres. It scales media better bu
 1. Sign up or sign in. Create a named knowledge base with topic, goal, and current knowledge.
 2. Upload resources. Show extraction status and errors; enable plan generation only when at least one resource is ready and none is processing/failed.
 3. Request a proposed plan. Show the proposed episode count, sequence, titles, objectives, and mapped resources. Explain material gaps instead of promising unsupported coverage.
-4. Edit the outline. Changing duration asks Gemma to regenerate a draft; manually reorder/edit/add/remove outline items within the 3–30 limit. Generation requests are explicit and never overwrite unsaved edits silently.
+4. Edit the outline. Changing duration asks the configured OpenRouter model to regenerate a draft; manually reorder/edit/add/remove outline items within the 3–30 limit. Generation requests are explicit and never overwrite unsaved edits silently.
 5. Approve the displayed revision and delivery settings. A background validation checks the edited plan against the resources. Unsupported objectives return the plan to editable draft with specific gaps. A valid approval atomically freezes the resource snapshot and ordered plan, then enqueues episode one. No audio-generation charges before approval. Show “Checking your plan” while validation runs.
 
 ### Daily use
@@ -132,9 +132,9 @@ Output: `{ title, script, continuitySummary, sourceRefs }`. The script is contin
 
 Validate schema, target word count, known source references, and excerpt matches. One corrective model call is allowed for invalid output. Remaining invalid output is recorded as a retryable generation failure, never narrated/published. A duration-repair script may be shorter than 180 words when needed to meet the hard audio limit. Quality beyond mechanical validation requires representative human review before launch, including narrative flow, factual support, and whether any question slipped through.
 
-Default model proposal: `google/gemma-3-12b-it` through OpenRouter, with the model ID an operator environment setting. Test it on representative material before finalising. Remain within Gemma models; do not silently fall back to a closed model. Store model ID, prompt version, available usage/cost metadata, and latency for each call. Avoid claiming the hosted deployment is offline or private from its inference providers.
+Default model: `z-ai/glm-5.3-flash` through OpenRouter, with the model ID configurable by the operator. This is a billed model that supports JSON responses through `response_format`; the app still validates every response against its sources. Test the model on representative material before finalising. Store model ID, prompt version, available usage/cost metadata, and latency for each call. Avoid claiming the hosted deployment is offline or private from its inference providers.
 
-Narrate the persisted valid script using ElevenLabs, a configured preset voice, and `mp3_44100_128`. Select/verify the supported TTS model using the operator account before deployment. Limit returned audio to 8 MiB per episode and measure its decoded duration with an established audio parser. Reject corrupt audio or missing/non-finite/non-positive duration. If duration exceeds 120 seconds, shorten the script using Gemma and narrate it again once. Persist this repair state and attempt so a restart or stage retry cannot reset the repair budget. Revalidate grounding, narrative continuity, and the replacement summary/citations together with the repaired script. If the repaired audio still exceeds 120 seconds, leave the episode failed with a clear error; never publish or push it. An explicit user retry reuses the final repaired script and does not reset its shortening allowance. Never cut off the recording or speed up the narrator to meet the limit. Publish readiness only after the final script, matching citations/summary, and playable audio of at most 120 seconds are stored successfully; enforce this again at the publication boundary.
+Narrate the persisted valid script using ElevenLabs, a configured preset voice, and `mp3_44100_128`. Select/verify the supported TTS model using the operator account before deployment. Limit returned audio to 8 MiB per episode and measure its decoded duration with an established audio parser. Reject corrupt audio or missing/non-finite/non-positive duration. If duration exceeds 120 seconds, shorten the script using the configured OpenRouter model and narrate it again once. Persist this repair state and attempt so a restart or stage retry cannot reset the repair budget. Revalidate grounding, narrative continuity, and the replacement summary/citations together with the repaired script. If the repaired audio still exceeds 120 seconds, leave the episode failed with a clear error; never publish or push it. An explicit user retry reuses the final repaired script and does not reset its shortening allowance. Never cut off the recording or speed up the narrator to meet the limit. Publish readiness only after the final script, matching citations/summary, and playable audio of at most 120 seconds are stored successfully; enforce this again at the publication boundary.
 
 ## 7. Scheduling, work recovery, and push delivery
 
@@ -187,16 +187,16 @@ Use paid-capable always-running worker/database plans as needed; do not promise 
 
 1. Two accounts cannot access each other's knowledge bases, uploads, scripts, audio, playback, or push subscriptions.
 2. Upload a valid text PDF and Markdown file; view extraction success and actual PDF page references. A scanned PDF and oversized file receive useful errors.
-3. Gemma proposes a source-mapped 3–30 episode plan. User can change count, edit objectives, reorder lessons, and approve the displayed revision.
+3. The configured OpenRouter model proposes a source-mapped 3–30 episode plan. User can change count, edit objectives, reorder lessons, and approve the displayed revision.
 4. Approval generates episode one immediately; duplicate approval and restart do not create duplicate episode rows.
 5. Every published episode has measured audio duration greater than zero and at most 120 seconds, with a clear narrative and new concept, no questions; a later episode accurately recaps its predecessor without implying listening/mastery. An overlong recording is repaired once or fails without publication; a recording of exactly 120 seconds is allowed.
 6. With the app closed, a due course produces the next audio episode. A restart recovers work; overdue courses release sequentially without a backlog burst. DST and timezone cases pass deterministic tests.
 7. A user can pause, resume, seek, and return to the saved position. Real range requests work; there is no autoplay.
 8. On a supported real mobile device, installation opens standalone. Opt-in push opens the ready episode. Denied/unsupported push still permits the complete listening journey.
 9. Paused/deleted courses do not publish new episodes or leak notifications; retrying failed push does not regenerate audio.
-10. A real Gemma → ElevenLabs smoke run is reviewed for factual grounding and narrative quality; mocked tests alone do not establish this.
+10. A real OpenRouter → ElevenLabs smoke run is reviewed for factual grounding and narrative quality; mocked tests alone do not establish this.
 11. Responsive browser E2E, relevant automated tests, typecheck and production build pass before a completion claim.
-12. Provide README setup/deployment instructions, architecture explanation, known limitations, and a DEV submission draft with demo/code/partner categories and measured observations. Gemma, ElevenLabs, and Render are intended categories; eligibility depends on the actual implemented use.
+12. Provide README setup/deployment instructions, architecture explanation, known limitations, and a DEV submission draft with demo/code/partner categories and measured observations. OpenRouter/GLM, ElevenLabs, and Render are intended categories; eligibility depends on the actual implemented use.
 
 ## 11. Non-goals and remaining builder choices
 
@@ -207,7 +207,7 @@ Builder chooses the visual design, exact dependency patch versions, source excer
 ## 12. Evidence and challenge submission
 
 - Challenge, template, deadline and judging: https://dev.to/challenges/hacktoberfest-week3-2026-10-19 — deadline October 25, 2026, 11:59 PM PDT; new project/repository within the challenge window; writing quality weighted highest. Capture a demo and explain why the open model is essential. Any post-deadline changes must be disclosed as required by the rules.
-- Candidate Gemma model: https://openrouter.ai/google/gemma-3-12b-it — availability/model ID checked October 24, 2026; recheck with the actual key before implementation smoke tests. Do not conflate Gemma's model licence with the application's licence.
+- Current model: https://openrouter.ai/z-ai/glm-5.3-flash — model ID and endpoint capabilities checked October 25, 2026; recheck availability with the actual key before deployment.
 - Render background workers: https://render.com/docs/background-workers — continuous processes suitable for asynchronous provider work.
 - ElevenLabs narration API: https://elevenlabs.io/docs/api-reference/text-to-speech/convert — text-to-speech endpoint, preset voice and MP3 output.
 - Apple web push requirements: https://webkit.org/blog/13878/ and https://developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers — Home Screen installation and explicit permission on supported iOS/iPadOS.

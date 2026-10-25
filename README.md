@@ -42,6 +42,6 @@ The app uses Render’s assigned external URL for origin checks; set `APP_ORIGIN
 - Editable, source-grounded plans and explicit approval.
 - Daily narrative episodes, a private audio player and saved listening progress.
 - PWA installation and optional ready-episode notifications.
-- Mock-provider local flow, OpenRouter/Gemma plans and ElevenLabs narration.
+- Mock-provider local flow, OpenRouter plans and scripts, and ElevenLabs narration. The default OpenRouter model is GLM 5.3 Flash; set `OPENROUTER_MODEL` to use a different model.
 
 This is an alpha: password recovery and live-provider quality checks are not included. Resource limits and episode checks are enforced by the server; see the design spec and implementation plan in `docs/superpowers/`.
