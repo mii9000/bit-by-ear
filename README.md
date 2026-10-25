@@ -33,7 +33,7 @@ npm run build
 
 `render.yaml` defines a web service, a background worker and a PostgreSQL database. Create a Render Blueprint from this repository and enter the OpenRouter API key, ElevenLabs API key and voice ID in the service environment settings. The blueprint leaves provider and VAPID credentials unset; no keys are stored in the repository. The web service runs the migration at startup, and the worker shares the same database and provider credentials.
 
-The app uses Render’s assigned external URL for origin checks; set `APP_ORIGIN` only if you use a custom domain. Set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` to enable optional browser notifications. The demo Blueprint uses a free web service, a free PostgreSQL database, and an always-on paid worker. The web service sleeps after 15 minutes without traffic, and the free database expires after 30 days and has no backups. Upgrade the database before expiry to keep its data. The production build compiles the server and frontend; the web service applies migrations at startup because free web services do not support pre-deploy commands.
+The app uses Render’s assigned external URL for origin checks; set `APP_ORIGIN` only if you use a custom domain. Set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` to enable optional browser notifications. The Blueprint uses a free web service, a small paid PostgreSQL database with 5 GB of storage, and an always-on paid worker. The web service sleeps after 15 minutes without traffic; the worker continues preparing episodes. The production build compiles the server and frontend; the web service applies migrations at startup because free web services do not support pre-deploy commands.
 
 ## What is included
 

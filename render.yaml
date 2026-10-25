@@ -79,7 +79,9 @@ services:
 
 databases:
   - name: bit-by-ear-db
-    plan: free
+    plan: 0.1c-256mb
+    diskSizeGB: 5
+    ipAllowList: []
     region: frankfurt
     databaseName: bitbyear
     user: bitbyear
