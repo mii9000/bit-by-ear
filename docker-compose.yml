@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bitbyeardev
+      POSTGRES_USER: bitbyeardev
+      POSTGRES_PASSWORD: bitbyeardev
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bitbyeardev -d bitbyeardev"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - bit-by-ear-postgres:/var/lib/postgresql/data
+
+volumes:
+  bit-by-ear-postgres:
